@@ -1,4 +1,4 @@
-# Redis.app
+# Elasticsearch.app
 
 ### The easiest way to get started with Redis on the Mac
 
