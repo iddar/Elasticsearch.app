@@ -1,12 +1,11 @@
 //
 //  AppDelegate.swift
-//  Redis
+//  Elasticsearch
 //
-//  Created by José Padilla on 2/13/16.
-//  Copyright © 2016 José Padilla. All rights reserved.
+//  Created by Iddar Olivares on 3/10/2017.
 //
 
-import Cocoa
+import Cocoa    
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -24,7 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var pipe: Pipe = Pipe()
     var file: FileHandle
 
-    var statusBar = NSStatusBar.system()
+    var statusBar = NSStatusBar.system
     var statusBarItem: NSStatusItem = NSStatusItem()
     var menu: NSMenu = NSMenu()
 
@@ -51,13 +50,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.pipe = Pipe()
         self.file = self.pipe.fileHandleForReading
 
-        if let path = Bundle.main.path(forResource: "redis-server", ofType: "", inDirectory: "Vendor/redis/bin") {
+        if let path = Bundle.main.path(forResource: "elasticsearch", ofType: "", inDirectory: "Vendor/elasticsearch/bin") {
             self.task.launchPath = path
         }
 
-        self.task.arguments = ["--dir", self.dataPath, "--logfile", "\(self.logPath)/redis.log"]
-        self.task.standardOutput = self.pipe
+        //self.task.arguments = [""]
+       self.task.standardOutput = self.pipe
 
+        self.file.readabilityHandler = { pipe in
+            if let line = String(data: pipe.availableData, encoding: String.Encoding.utf8) {
+                // Update your view with the new text here
+                print("New ouput: \(line)")
+                
+                if line.lowercased().contains("recovered") {
+                    // end loading
+                    self.statusMenuItem.title = "Running on Port 9200"
+                }
+            } else {
+                print("Error decoding data: \(pipe.availableData)")
+            }
+        }
+        
         print("Run redis-server")
 
         self.task.launch()
@@ -74,8 +87,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print(output)
     }
 
-    func openCLI(_ sender: AnyObject) {
-        if let path = Bundle.main.path(forResource: "redis-cli", ofType: "", inDirectory: "Vendor/redis/bin") {
+    @objc func openCLI(_ sender: AnyObject) {
+        if let path = Bundle.main.path(forResource: "elasticsearch", ofType: "", inDirectory: "Vendor/elasticsearch/bin") {
             var source: String
 
             if appExists("iTerm") {
@@ -101,15 +114,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-
-    func openDocumentationPage(_ send: AnyObject) {
+    
+    @objc func openDocumentationPage(_ send: AnyObject) {
         if let url: URL = URL(string: "https://github.com/jpadilla/redisapp") {
-            NSWorkspace.shared().open(url)
+            NSWorkspace.shared.open(url)
         }
     }
 
-    func openLogsDirectory(_ send: AnyObject) {
-        NSWorkspace.shared().openFile(self.logPath)
+    @objc func openLogsDirectory(_ send: AnyObject) {
+        NSWorkspace.shared.openFile(self.logPath)
     }
 
     func createDirectories() {
@@ -135,7 +148,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Redis logs directory: \(self.logPath)")
     }
 
-    func checkForUpdates(_ sender: AnyObject?) {
+    @objc func checkForUpdates(_ sender: AnyObject?) {
         print("Checking for updates")
         self.updater.checkForUpdates(sender)
     }
@@ -145,7 +158,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarItem = statusBar.statusItem(withLength: -1)
         statusBarItem.menu = menu
 
-        let icon = NSImage(named: "logo")
+        let icon = NSImage(named: NSImage.Name(rawValue: "logo"))
         icon!.isTemplate = true
         icon!.size = NSSize(width: 18, height: 18)
         statusBarItem.image = icon
@@ -158,7 +171,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(versionMenuItem)
 
         // Add actionMenuItem to menu
-        statusMenuItem.title = "Running on Port 6379"
+        statusMenuItem.title = "loading..."
         menu.addItem(statusMenuItem)
 
         // Add separator
@@ -197,7 +210,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Add quitMenuItem to menu
         quitMenuItem.title = "Quit"
-        quitMenuItem.action = #selector(NSApplication.shared().terminate)
+        quitMenuItem.action = #selector(NSApplication.shared.terminate)
         menu.addItem(quitMenuItem)
     }
 
